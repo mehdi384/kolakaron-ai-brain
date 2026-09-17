@@ -1,0 +1,89 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(uid) { return signedIn() && request.auth.uid == uid; }
+    function admin() { return signedIn() && request.auth.token.admin == true; }
+    function validText(field, max) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is string && request.resource.data[field].size() <= max);
+    }
+    function validProfile(uid) {
+      return request.resource.data.keys().hasOnly([
+        'uid','displayName','username','email','role','disabled','createdAt',
+        'lastActiveAt','lastActiveDate','taskCount','doneCount','failedCount',
+        'schemaVersion','lastDeviceId'
+      ]) && request.resource.data.uid == uid &&
+        request.resource.data.role in ['user','admin'] &&
+        request.resource.data.disabled is bool &&
+        validText('displayName', 120) && validText('username', 80) &&
+        validText('email', 160) && validText('lastDeviceId', 120);
+    }
+    function validTask(taskId) {
+      return request.resource.data.keys().hasOnly([
+        'id','title','categoryId','status','date','matrix','dayPart','notes',
+        'scheduleMode','repeat','seriesId','segments','createdAt','schemaVersion',
+        'updatedAt','serverUpdatedAt','updatedByDevice'
+      ]) && request.resource.data.id == taskId &&
+        request.resource.data.status in ['pending','doing','done','failed'] &&
+        request.resource.data.matrix in ['q1','q2','q3','q4'] &&
+        request.resource.data.scheduleMode in ['single','range','repeat'] &&
+        request.resource.data.segments is list && request.resource.data.segments.size() <= 4 &&
+        validText('title', 300) && validText('notes', 5000) &&
+        validText('categoryId', 80) && validText('date', 20) &&
+        validText('dayPart', 30) && validText('repeat', 30) &&
+        validText('seriesId', 120) && validText('updatedByDevice', 120);
+    }
+    function validCategory(categoryId) {
+      return request.resource.data.keys().hasOnly(['id','name','color','emoji','schemaVersion','updatedAt','updatedByDevice']) &&
+        request.resource.data.id == categoryId && validText('name', 100) &&
+        validText('color', 20) && validText('emoji', 20) && validText('updatedByDevice', 120);
+    }
+    function validSettings() {
+      return request.resource.data.keys().hasOnly(['urgencyThreshold','autoRepeatEnabled','appearance','accent','schemaVersion','updatedAt','updatedByDevice']) &&
+        request.resource.data.urgencyThreshold is number &&
+        request.resource.data.urgencyThreshold >= 1 && request.resource.data.urgencyThreshold <= 1440 &&
+        request.resource.data.autoRepeatEnabled is bool &&
+        request.resource.data.appearance in ['light','dark','system'] &&
+        validText('accent', 20) && validText('updatedByDevice', 120);
+    }
+
+    match /profiles/{uid} {
+      allow read: if owner(uid) || admin();
+      allow create: if (owner(uid) || admin()) && validProfile(uid) &&
+        (admin() || request.resource.data.role == 'user');
+      allow update: if (owner(uid) || admin()) && validProfile(uid) &&
+        (admin() || (request.resource.data.role == resource.data.role &&
+          request.resource.data.disabled == resource.data.disabled));
+      allow delete: if admin();
+    }
+
+    match /users/{uid}/tasks/{taskId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid) && validTask(taskId);
+      allow delete: if owner(uid);
+    }
+
+    match /users/{uid}/categories/{categoryId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid) && validCategory(categoryId);
+      allow delete: if owner(uid);
+    }
+
+    match /users/{uid}/settings/{settingId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid) && settingId == 'main' && validSettings();
+      allow delete: if owner(uid);
+    }
+
+    match /users/{uid}/meta/{metaId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid) && metaId == 'schema' &&
+        request.resource.data.keys().hasOnly(['schemaVersion','updatedAt','lastMigratedByDevice']) &&
+        request.resource.data.schemaVersion is number && validText('lastMigratedByDevice', 120);
+      allow delete: if owner(uid);
+    }
+  }
+}
+
