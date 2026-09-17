@@ -24,7 +24,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Restore HTML source
-        run: python3 -c "import base64; open('index.html','wb').write(base64.b64decode(open('index.html.b64','rb').read()))"
+        run: |
+          cat index.html.b64.part* > index.html.b64.complete
+          python3 -c "import base64; open('index.html','wb').write(base64.b64decode(open('index.html.b64.complete','rb').read()))"
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
