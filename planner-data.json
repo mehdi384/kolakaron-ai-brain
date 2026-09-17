@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 7,
+  "tasks": [],
+  "categories": [
+    {
+      "id": "work",
+      "name": "کار",
+      "color": "#8fcbd2",
+      "emoji": "💼"
+    },
+    {
+      "id": "study",
+      "name": "مطالعه",
+      "color": "#a9c7f5",
+      "emoji": "📚"
+    },
+    {
+      "id": "health",
+      "name": "سلامت",
+      "color": "#9fd3b7",
+      "emoji": "🌿"
+    },
+    {
+      "id": "personal",
+      "name": "شخصی",
+      "color": "#e2b9d1",
+      "emoji": "✨"
+    }
+  ],
+  "settings": {
+    "urgencyThreshold": 120,
+    "autoRepeatEnabled": true,
+    "appearance": "light",
+    "accent": "#8fcbd2"
+  },
+  "profile": {
+    "displayName": "مهمان",
+    "username": "guest"
+  },
+  "lastSavedAt": null,
+  "deviceId": null
+}
