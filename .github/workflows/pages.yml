@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Restore HTML source
+        run: base64 --decode index.html.b64 > index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
