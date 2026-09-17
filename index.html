@@ -421,6 +421,8 @@ input:focus,textarea:focus{box-shadow:0 0 0 4px rgba(46,196,198,.16),0 0 0 1px r
 .modal-dialog{overflow:hidden;overscroll-behavior:contain}
 .modal-card{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 @media(max-width:850px){.modal-dialog{padding:12px}.modal-card{max-height:calc(100dvh - 24px)}}
+/* GitHub storage is internal; do not expose repository details in the UI. */
+#githubSyncCard{display:none!important}
 </style>
 </head>
 <body>
@@ -1210,6 +1212,7 @@ bootstrap();
   </script>
 </body>
 </html>
+
 
 
 
